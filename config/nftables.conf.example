@@ -1,1 +1,8 @@
-Add scoped nftables NAT example
+# Dedicated IPv4 NAT table. Does not flush or replace existing firewall rules.
+# Confirm the actual VPN tunnel interface before applying.
+table ip pashani_gw {
+    chain postrouting {
+        type nat hook postrouting priority srcnat; policy accept;
+        oifname "tun0" ip saddr 192.168.50.0/24 masquerade
+    }
+}
