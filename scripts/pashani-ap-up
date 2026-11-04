@@ -1,1 +1,48 @@
-Add AP startup script
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Start the downstream AP. Review interface names and paths for your host.
+[[ "$EUID" -eq 0 ]] || { echo "Run with sudo." >&2; exit 1; }
+
+UPLINK="wlp13s0"
+AP="ap0"
+TEMPLATE="/etc/hostapd/pashani-test.conf"
+CONF="/etc/hostapd/pashani-ap.conf"
+NFT_CONFIG="/etc/pashani-gw.nft"
+
+for cmd in iw ip nmcli sysctl nft hostapd dnsmasq awk sed; do
+  command -v "$cmd" >/dev/null 2>&1 || { echo "Missing command: $cmd" >&2; exit 1; }
+done
+[[ -r "$TEMPLATE" ]] || { echo "Missing $TEMPLATE" >&2; exit 1; }
+[[ -r "$NFT_CONFIG" ]] || { echo "Missing $NFT_CONFIG" >&2; exit 1; }
+
+/usr/local/sbin/pashani-ap-down >/dev/null 2>&1 || true
+ip link show tun0 >/dev/null 2>&1 || { echo "tun0 not found - connect Hiddify first" >&2; exit 1; }
+
+FREQ="$(iw dev "$UPLINK" link | awk '/freq:/ {print int($2)}')"
+[[ -n "$FREQ" ]] || { echo "$UPLINK is not connected" >&2; exit 1; }
+if (( FREQ < 2412 || FREQ > 2462 )); then
+  echo "$UPLINK is on $FREQ MHz, not the expected 2.4 GHz range (2412-2462 MHz)." >&2
+  exit 1
+fi
+CHANNEL=$(( (FREQ - 2407) / 5 ))
+
+sysctl -qw net.ipv4.ip_forward=1
+nft -f "$NFT_CONFIG"
+
+iw dev "$UPLINK" interface add "$AP" type __ap
+sleep 1
+nmcli device set "$AP" managed no 2>/dev/null || true
+ip addr flush dev "$AP"
+ip addr add 192.168.50.1/24 dev "$AP"
+ip link set "$AP" up
+sysctl -qw "net.ipv6.conf.$AP.disable_ipv6=1"
+
+umask 077
+sed -E "s/^channel=.*/channel=$CHANNEL/; s/^hw_mode=.*/hw_mode=g/" "$TEMPLATE" > "$CONF"
+hostapd -B -P /run/hostapd-pashani.pid -f /var/log/hostapd-pashani.log "$CONF" >/dev/null
+sleep 2
+iw dev "$AP" info | grep -q "type AP" || { echo "hostapd failed; see /var/log/hostapd-pashani.log" >&2; exit 1; }
+
+dnsmasq --conf-file=/etc/dnsmasq-pashani.conf --pid-file=/run/dnsmasq-pashani.pid --log-facility=/var/log/dnsmasq-pashani.log
+echo "Pashani-VPN started on channel $CHANNEL (upstream ${FREQ} MHz), gateway 192.168.50.1"
