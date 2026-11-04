@@ -2,7 +2,7 @@
 
 ## Demonstrated result
 
-In the original test, a Hisense VIDAA TV connected to the Pashani-VPN access point and streaming applications operated. The public IPv4 observed from the TV was `102.208.228.194`, matching the VPN egress IPv4 previously observed from the laptop.
+In the original test, a Hisense VIDAA TV connected to the Pashani-VPN access point and streaming applications operated. The public IPv4 observed from the TV matched the VPN egress IPv4 previously observed from the laptop.
 
 This supports matching observed IPv4 egress for that test. It does not prove DNS leak prevention, IPv6 protection, kill-switch behaviour or every traffic path.
 
