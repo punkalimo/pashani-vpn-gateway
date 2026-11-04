@@ -88,7 +88,7 @@ sudo tail -n 100 /var/log/dnsmasq-pashani.log
 
 ## Validation and limitations
 
-In the original test, the TV connected and streaming applications worked. Its observed public IPv4 was `102.208.228.194`, matching the VPN egress IPv4 previously observed on the laptop. This supports the conclusion that the TV's tested IPv4 traffic used the same public egress. It does not prove DNS privacy, IPv6 protection, absence of split tunnelling or kill-switch behaviour.
+In the original test, the TV connected and streaming applications worked. The public IPv4 observed from the TV matched the VPN egress IPv4 previously observed on the laptop. This supports the conclusion that the TV's tested IPv4 traffic used the same public egress. It does not prove DNS privacy, IPv6 protection, absence of split tunnelling or kill-switch behaviour.
 
 - Hiddify must be connected before AP startup.
 - The supplied script expects upstream 2.4 GHz Wi-Fi.
