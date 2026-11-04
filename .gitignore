@@ -1,1 +1,13 @@
-Add gitignore
+# Local/private configuration and secrets
+*.conf
+!config/*.conf.example
+.env
+.env.*
+*.ovpn
+*.log
+*.pid
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
