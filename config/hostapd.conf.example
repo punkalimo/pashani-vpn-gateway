@@ -1,1 +1,15 @@
-Add hostapd example
+# Copy to /etc/hostapd/pashani-test.conf and edit.
+interface=ap0
+driver=nl80211
+ssid=Pashani-VPN
+# Startup script replaces these values based on upstream frequency.
+hw_mode=g
+channel=1
+ieee80211n=1
+wmm_enabled=1
+auth_algs=1
+wpa=2
+wpa_key_mgmt=WPA-PSK
+rsn_pairwise=CCMP
+# Replace with a unique passphrase. Never commit real credentials.
+wpa_passphrase=CHANGE-THIS-PLACEHOLDER
