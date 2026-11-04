@@ -1,1 +1,15 @@
-Add AP shutdown script
+#!/usr/bin/env bash
+set -u
+# Stop only project-owned processes/interface. Never globally flush firewall rules.
+[[ "$EUID" -eq 0 ]] || { echo "Run with sudo." >&2; exit 1; }
+
+for pidfile in /run/dnsmasq-pashani.pid /run/hostapd-pashani.pid; do
+  if [[ -f "$pidfile" ]]; then
+    pid="$(cat "$pidfile" 2>/dev/null || true)"
+    [[ "$pid" =~ ^[0-9]+$ ]] && kill "$pid" 2>/dev/null || true
+    rm -f "$pidfile"
+  fi
+done
+sleep 1
+iw dev ap0 del 2>/dev/null || true
+echo "Pashani-VPN AP stopped. The nftables table was left unchanged."
